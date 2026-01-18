@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>一括起動タイマー Web</title>
+    <title>一括起動タイマー Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,16 +11,23 @@
         <h1>一括起動タイマー</h1>
         
         <div class="setup-area">
-            <label>タイマー個数:</label>
-            <input type="number" id="timerCount" value="3" min="1" max="50">
-            <button onclick="createTimerList()">リストを作成</button>
-            <button onclick="toggleAll()">全選択/解除</button>
+            <div class="input-group">
+                <label>タイマー個数:</label>
+                <input type="number" id="timerCount" value="3" min="1" max="50">
+            </div>
+            <div class="button-group">
+                <button onclick="createTimerList()" class="secondary-btn">リスト作成</button>
+                <button onclick="toggleAll()" class="secondary-btn">全選択/解除</button>
+                <button onclick="resetAll()" class="danger-btn">全リセット</button>
+            </div>
         </div>
 
         <div id="timerList" class="timer-list">
             </div>
 
         <button class="start-btn" onclick="startSelected()">選択したタイマーをスタート！</button>
+        
+        <p class="hint">※スマホで音が鳴らない場合は、一度「リスト作成」を押してから音量設定を確認してください。</p>
     </div>
     <script src="script.js"></script>
 </body>
