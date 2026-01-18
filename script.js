@@ -1,7 +1,22 @@
+// 音声を管理する変数を外に出しておく
+let audioCtx = null;
+
+function initAudio() {
+    // ユーザーの操作（クリックなど）の中でこれを一度実行すると、音が許可される
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // もし停止（suspended）状態なら再開させる
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
 function createTimerList() {
+    initAudio(); // リスト作成ボタンを押した時に音を準備
     const count = document.getElementById('timerCount').value;
     const list = document.getElementById('timerList');
-    list.innerHTML = ''; // リセット
+    list.innerHTML = '';
 
     for (let i = 0; i < count; i++) {
         const row = document.createElement('div');
@@ -21,14 +36,8 @@ function createTimerList() {
     }
 }
 
-function toggleAll() {
-    const checks = document.querySelectorAll('.timer-check');
-    if (checks.length === 0) return;
-    const firstState = checks[0].checked;
-    checks.forEach(c => c.checked = !firstState);
-}
-
 function startSelected() {
+    initAudio(); // スタートボタンを押した時にも音を準備（重要！）
     const rows = document.querySelectorAll('.timer-row');
     rows.forEach(row => {
         const isChecked = row.querySelector('.timer-check').checked;
@@ -57,22 +66,24 @@ function startCountdown(seconds, label) {
             label.innerText = "終了！";
             label.style.color = "orange";
             playBeep();
+            // スマホならバイブレーションも追加（おまけ）
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
     }, 1000);
 }
 
 function playBeep() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) return;
+
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
     gain.connect(audioCtx.destination);
+    
     osc.type = 'sine';
     osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
     gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    
     osc.start();
     osc.stop(audioCtx.currentTime + 0.2);
 }
-
-// 初期起動
-createTimerList();
