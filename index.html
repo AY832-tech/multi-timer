@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一括起動タイマー Web</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>一括起動タイマー</h1>
+        
+        <div class="setup-area">
+            <label>タイマー個数:</label>
+            <input type="number" id="timerCount" value="3" min="1" max="50">
+            <button onclick="createTimerList()">リストを作成</button>
+            <button onclick="toggleAll()">全選択/解除</button>
+        </div>
+
+        <div id="timerList" class="timer-list">
+            </div>
+
+        <button class="start-btn" onclick="startSelected()">選択したタイマーをスタート！</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
