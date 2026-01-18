@@ -1,7 +1,6 @@
 let audioCtx = null;
-let timers = {}; // 稼働中のタイマー管理
+let timers = {}; 
 
-// スマホの音声制限を解除する関数
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -11,135 +10,197 @@ function initAudio() {
     }
 }
 
-// リスト作成
-function createTimerList() {
+function saveSettings() {
+    const timerCount = document.getElementById('timerCount').value;
+    const globalSound = document.getElementById('globalSound').value;
+    const rows = document.querySelectorAll('.timer-row');
+    const timerData = [];
+
+    rows.forEach(row => {
+        timerData.push({
+            val: row.querySelector('.timer-val').value,
+            unit: row.querySelector('.timer-unit').value,
+            sound: row.querySelector('.timer-sound').value,
+            checked: row.querySelector('.timer-check').checked
+        });
+    });
+
+    localStorage.setItem('myTimerConfigV4', JSON.stringify({
+        count: timerCount, 
+        globalSound: globalSound,
+        timers: timerData
+    }));
+}
+
+function loadSettings() {
+    const saved = localStorage.getItem('myTimerConfigV4');
+    return saved ? JSON.parse(saved) : null;
+}
+
+function changeAllSounds() {
+    const globalSound = document.getElementById('globalSound').value;
+    document.querySelectorAll('.timer-sound').forEach(select => {
+        select.value = globalSound;
+    });
+    saveSettings();
+}
+
+function createTimerList(isInitial = false) {
     initAudio(); 
     resetAll();
-    const count = document.getElementById('timerCount').value;
+
+    let savedData = isInitial ? loadSettings() : null;
+    let count;
+    let globalSound = "bell"; 
+
+    if (savedData) {
+        count = savedData.count;
+        globalSound = savedData.globalSound || "bell";
+        document.getElementById('timerCount').value = count;
+        document.getElementById('globalSound').value = globalSound;
+    } else {
+        count = document.getElementById('timerCount').value;
+        globalSound = document.getElementById('globalSound').value;
+    }
+
     const list = document.getElementById('timerList');
     list.innerHTML = '';
 
     for (let i = 0; i < count; i++) {
+        const rowData = (savedData && savedData.timers[i]) ? savedData.timers[i] : {val: (i + 1) * 5, unit: "1", sound: globalSound, checked: true};
+        
         const row = document.createElement('div');
         row.className = 'timer-row';
         row.id = `timer-row-${i}`;
         row.innerHTML = `
-            <input type="checkbox" class="timer-check" checked>
-            <span style="width:40px">No.${i + 1}</span>
-            <input type="number" class="timer-val" value="${(i + 1) * 5}" style="width:65px">
-            <select class="timer-unit">
-                <option value="1">秒</option>
-                <option value="60">分</option>
-                <option value="3600">時間</option>
+            <input type="checkbox" class="timer-check" ${rowData.checked ? 'checked' : ''} onchange="saveSettings()">
+            <span style="font-size:12px; width:20px">#${i + 1}</span>
+            <input type="number" class="timer-val" value="${rowData.val}" style="width:55px" onchange="saveSettings()">
+            <select class="timer-unit" onchange="saveSettings()">
+                <option value="1" ${rowData.unit == "1" ? 'selected' : ''}>秒</option>
+                <option value="60" ${rowData.unit == "60" ? 'selected' : ''}>分</option>
+                <option value="3600" ${rowData.unit == "3600" ? 'selected' : ''}>時</option>
+            </select>
+            <select class="timer-sound" onchange="saveSettings()" style="width:80px">
+                <option value="bell" ${rowData.sound == "bell" ? 'selected' : ''}>ベル</option>
+                <option value="beep" ${rowData.sound == "beep" ? 'selected' : ''}>電子音</option>
+                <option value="alarm" ${rowData.sound == "alarm" ? 'selected' : ''}>警報</option>
             </select>
             <span class="status">待機中</span>
             <button class="reset-btn" onclick="resetSingleTimer(${i})">リセット</button>
         `;
         list.appendChild(row);
     }
+    saveSettings();
 }
 
-// 選択したタイマーを開始
 function startSelected() {
     initAudio();
+    saveSettings();
     const rows = document.querySelectorAll('.timer-row');
     rows.forEach((row, index) => {
         const isChecked = row.querySelector('.timer-check').checked;
         const statusLabel = row.querySelector('.status');
+        const soundType = row.querySelector('.timer-sound').value;
         
-        // 待機中か終了済みのものだけ開始
         if (isChecked && (statusLabel.innerText === '待機中' || statusLabel.innerText === '終了！')) {
             const val = parseFloat(row.querySelector('.timer-val').value);
             const unit = parseInt(row.querySelector('.timer-unit').value);
-            if (val > 0) {
-                startCountdown(index, Math.floor(val * unit), statusLabel);
-            }
+            if (val > 0) startCountdown(index, Math.floor(val * unit), statusLabel, soundType);
         }
     });
 }
 
-// カウントダウン処理
-function startCountdown(id, seconds, label) {
+function startCountdown(id, seconds, label, soundType) {
     if (timers[id]) clearInterval(timers[id]);
-
     let timeLeft = seconds;
-    label.style.color = "#00e676"; // 動作中は緑色
+    label.style.color = "#00e676";
 
     timers[id] = setInterval(() => {
         timeLeft--;
-        
         const h = Math.floor(timeLeft / 3600);
         const m = Math.floor((timeLeft % 3600) / 60);
         const s = timeLeft % 60;
-        
-        let timeStr = "";
-        if (h > 0) timeStr += `${h}h `;
-        if (m > 0 || h > 0) timeStr += `${m}m `;
-        timeStr += `${s}s`;
-        
-        label.innerText = timeStr;
+        label.innerText = `${h > 0 ? h + 'h ' : ''}${m > 0 || h > 0 ? m + 'm ' : ''}${s}s`;
 
         if (timeLeft <= 0) {
             clearInterval(timers[id]);
             delete timers[id];
             label.innerText = "終了！";
             label.style.color = "orange";
-            playBeep();
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // スマホ用振動
+            playSelectedSound(soundType);
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
     }, 1000);
 }
 
-// 個別リセット
+// 【改良】学会のベル（卓上ベル）を模した音
+function playSelectedSound(type) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+
+    if (type === 'bell') {
+        // 学会のベル特有の「非整数倍音」を再現するための4つの周波数
+        const frequencies = [2000, 2800, 3500, 4200];
+        
+        frequencies.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+
+            // 叩いた瞬間のアタックと、長い余韻
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.2 / (i + 1), now + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 2.5);
+        });
+    } else if (type === 'beep') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(1000, now);
+        gain.gain.setValueAtTime(0.1, now);
+        osc.start();
+        osc.stop(now + 0.2);
+    } else if (type === 'alarm') {
+        for(let i=0; i<3; i++) {
+            const t = now + (i * 0.2);
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(800, t);
+            g.gain.setValueAtTime(0.1, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            osc.start(t); osc.stop(t + 0.15);
+        }
+    }
+}
+
 function resetSingleTimer(id) {
-    if (timers[id]) {
-        clearInterval(timers[id]);
-        delete timers[id];
-    }
-    const row = document.getElementById(`timer-row-${id}`);
-    if (row) {
-        const statusLabel = row.querySelector('.status');
-        statusLabel.innerText = "待機中";
-        statusLabel.style.color = "#888";
-    }
+    if (timers[id]) { clearInterval(timers[id]); delete timers[id]; }
+    const statusLabel = document.querySelector(`#timer-row-${id} .status`);
+    if (statusLabel) { statusLabel.innerText = "待機中"; statusLabel.style.color = "#888"; }
 }
 
-// 全リセット
 function resetAll() {
-    Object.keys(timers).forEach(id => {
-        clearInterval(timers[id]);
-        delete timers[id];
-    });
-    document.querySelectorAll('.status').forEach(label => {
-        label.innerText = "待機中";
-        label.style.color = "#888";
-    });
+    Object.keys(timers).forEach(id => { clearInterval(timers[id]); delete timers[id]; });
+    document.querySelectorAll('.status').forEach(l => { l.innerText = "待機中"; l.style.color = "#888"; });
 }
 
-// 全選択・解除
 function toggleAll() {
     const checks = document.querySelectorAll('.timer-check');
     if (checks.length === 0) return;
-    const firstState = checks[0].checked;
-    checks.forEach(c => c.checked = !firstState);
+    const state = checks[0].checked;
+    checks.forEach(c => c.checked = !state);
+    saveSettings();
 }
 
-// アラーム音再生
-function playBeep() {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1000, audioCtx.currentTime); // 1000Hz
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3); // 0.3秒鳴らす
-}
-
-// 初回起動
-createTimerList();
+createTimerList(true);

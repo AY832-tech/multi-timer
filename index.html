@@ -15,19 +15,26 @@
                 <label>タイマー個数:</label>
                 <input type="number" id="timerCount" value="3" min="1" max="50">
             </div>
+            <div class="input-group">
+                <label>一括音色:</label>
+                <select id="globalSound" onchange="changeAllSounds()">
+                    <option value="bell">ベル (標準)</option>
+                    <option value="beep">電子音</option>
+                    <option value="alarm">警報</option>
+                </select>
+            </div>
             <div class="button-group">
-                <button onclick="createTimerList()" class="secondary-btn">リスト作成</button>
+                <button onclick="createTimerList()" class="secondary-btn">タイマーのリストを作成</button>
                 <button onclick="toggleAll()" class="secondary-btn">全選択/解除</button>
                 <button onclick="resetAll()" class="danger-btn">全リセット</button>
             </div>
         </div>
 
-        <div id="timerList" class="timer-list">
-            </div>
+        <div id="timerList" class="timer-list"></div>
 
         <button class="start-btn" onclick="startSelected()">選択したタイマーをスタート！</button>
         
-        <p class="hint">※スマホで音が鳴らない場合は、一度「リスト作成」を押してから音量設定を確認してください。</p>
+        <p class="hint">※「一括音色」を変えると、リスト内の全ての音が同時に切り替わります。</p>
     </div>
     <script src="script.js"></script>
 </body>

@@ -1,68 +1,9 @@
-body {
-    background-color: #1a1a1a;
-    color: white;
-    font-family: sans-serif;
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-}
-
-.container {
-    width: 100%;
-    max-width: 600px;
-    background: #2b2b2b;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.setup-area {
-    margin-bottom: 20px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-input, select, button {
-    padding: 8px;
-    border-radius: 5px;
-    border: none;
-}
-
-.timer-list {
-    max-height: 400px;
-    overflow-y: auto;
-    background: #333;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-.timer-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #444;
-    margin-bottom: 8px;
-    padding: 10px;
-    border-radius: 6px;
-}
-
-/* 個別リセットボタンのスタイル */
-.reset-btn {
-    padding: 5px 10px;
-    background-color: #6c757d;
-    color: white;
-    font-size: 12px;
-    cursor: pointer;
-    border-radius: 4px;
-}
 :root {
     --bg-color: #121212;
     --card-bg: #1e1e1e;
     --text-color: #e0e0e0;
     --accent-color: #00e676;
     --danger-color: #ff5252;
-    --secondary-btn: #333;
 }
 
 body {
@@ -77,34 +18,33 @@ body {
 
 .container {
     width: 100%;
-    max-width: 650px;
+    max-width: 750px;
     background: var(--card-bg);
     padding: 25px;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-h1 {
-    text-align: center;
-    margin-bottom: 25px;
-    color: var(--accent-color);
-}
+h1 { text-align: center; color: var(--accent-color); margin-top: 0; }
 
 .setup-area {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
     padding-bottom: 20px;
     border-bottom: 1px solid #333;
 }
 
-.button-group {
+.input-group {
     display: flex;
+    align-items: center;
     gap: 8px;
+    font-size: 14px;
 }
+
+.button-group { display: flex; gap: 8px; flex-wrap: wrap; }
 
 input, select, button {
     padding: 10px;
@@ -113,19 +53,9 @@ input, select, button {
     font-size: 14px;
 }
 
-input[type="number"] {
+input[type="number"], select {
     background: #333;
     color: white;
-    width: 60px;
-}
-
-button {
-    cursor: pointer;
-    transition: opacity 0.2s;
-}
-
-button:hover {
-    opacity: 0.8;
 }
 
 .secondary-btn { background: #444; color: white; }
@@ -141,58 +71,28 @@ button:hover {
     border-radius: 10px;
 }
 
-.timer-list {
-    max-height: 450px;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
 .timer-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     background: #2a2a2a;
     margin-bottom: 10px;
-    padding: 15px;
+    padding: 12px;
     border-radius: 8px;
 }
 
 .status {
     margin-left: auto;
-    min-width: 100px;
-    text-align: right;
     font-weight: bold;
     color: #888;
+    min-width: 85px;
+    text-align: right;
 }
 
-.reset-btn {
-    background: #555;
-    color: white;
-    font-size: 12px;
-    padding: 6px 12px;
-}
+.reset-btn { background: #555; color: white; padding: 6px 10px; font-size: 12px; }
+.hint { font-size: 11px; color: #666; text-align: center; margin-top: 15px; }
 
-.hint {
-    font-size: 12px;
-    color: #666;
-    margin-top: 15px;
-    text-align: center;
-}
-.reset-btn:hover {
-    background-color: #5a6268;
-}
-
-.start-btn {
-    width: 100%;
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #28a745;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.status {
-    margin-left: auto;
-    font-weight: bold;
+@media (max-width: 600px) {
+    .timer-row { flex-wrap: wrap; }
+    .status { width: 100%; text-align: left; margin: 5px 0; }
 }
